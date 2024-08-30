@@ -33,7 +33,7 @@ import org.bukkit.entity.Player
  * Shulker entity is used to force player into crawling position
  * when we cannot place a barrier block above the player.
  */
-public class BoxEntity(
+class BoxEntity(
     location: Location,
 ): Shulker(EntityType.SHULKER, (location.getWorld() as CraftWorld).getHandle()) {
 

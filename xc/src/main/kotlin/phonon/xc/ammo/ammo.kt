@@ -4,54 +4,44 @@
 
 package phonon.xc.ammo
 
-import java.nio.file.Path
-import java.util.logging.Logger
-import kotlin.math.min
-import org.tomlj.Toml
 import org.bukkit.ChatColor
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
+import org.tomlj.Toml
 import phonon.xc.XC
-import phonon.xc.util.mapToObject
+import phonon.xc.util.*
 import phonon.xc.util.IntoItemStack
+import java.nio.file.Path
+import java.util.logging.Logger
 
 
-public class Ammo(
+class Ammo(
     // id, same as custom model id
-    public val id: Int = Int.MAX_VALUE,
+    val id: Int = Int.MAX_VALUE,
 
     // ammo item/visual properties
-    public val itemName: String = "ammo",
-    public val itemLore: List<String>? = null,
-): IntoItemStack {
+    val itemName: String = "ammo",
+    private val itemLore: List<String> = listOf(),
+) : IntoItemStack {
     /**
      * Create a new ItemStack from ammo properties.
      */
-    public override fun toItemStack(xc: XC): ItemStack {
+    override fun toItemStack(xc: XC): ItemStack {
         val item = ItemStack(xc.config.materialAmmo, 1)
-        val itemMeta = item.getItemMeta()
-        
-        // name
-        itemMeta.setDisplayName("${ChatColor.RESET}${this.itemName}")
-        
-        // model
-        itemMeta.setCustomModelData(this.id)
-
-        // lore
-        this.itemLore?.let { itemMeta.setLore(it) }
-
-        item.setItemMeta(itemMeta)
-
+        item.editMeta {
+            it.displayName(itemName.parse())
+            it.setCustomModelData(id)
+            it.lore(itemLore.map { line -> line.parse() })
+        }
         return item
     }
 
-    
+
     companion object {
         /**
          * Parse and return a Ammo from a `ammo.toml` file.
          * Return null if something fails or no file found.
          */
-        public fun fromToml(source: Path, logger: Logger? = null): Ammo? {
+        fun fromToml(source: Path, logger: Logger? = null): Ammo? {
             try {
                 val toml = Toml.parse(source)
 
@@ -59,14 +49,15 @@ public class Ammo(
                 val properties = HashMap<String, Any>()
 
                 // parse toml file into properties
-                
+
                 // ammo id/model data
                 toml.getLong("id")?.let { properties["id"] = it.toInt() }
 
                 // item properties
-                toml.getTable("item")?.let { item -> 
-                    item.getString("name")?.let { properties["itemName"] = ChatColor.translateAlternateColorCodes('&', it) }
-                    item.getArray("lore")?.let { properties["itemLore"] = it.toList().map { s -> s.toString() } }
+                toml.getTable("item")?.let { item ->
+                    item.getString("name")?.let { properties["itemName"] = it.parseLegacy('&') }
+                    item.getArray("lore")
+                        ?.let { properties["itemLore"] = it.toList().map { s -> s.toString().parse() } }
                 }
 
                 return mapToObject(properties, Ammo::class)
@@ -75,6 +66,5 @@ public class Ammo(
                 return null
             }
         }
-
     }
 }

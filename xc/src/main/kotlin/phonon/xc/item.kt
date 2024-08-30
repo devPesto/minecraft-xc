@@ -9,33 +9,16 @@
  */
 package phonon.xc.item
 
-import java.util.EnumMap
-import kotlin.math.min
-import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
-import org.bukkit.persistence.PersistentDataType
-import org.bukkit.persistence.PersistentDataContainer
-import phonon.xc.nms.NmsNBTTagCompound
-import phonon.xc.nms.NmsNBTTagList
-import phonon.xc.nms.NBTTagString
-import phonon.xc.nms.NBTTagInt
-import phonon.xc.nms.putTag
-import phonon.xc.nms.containsKey
-import phonon.xc.nms.containsKeyOfType
-import phonon.xc.nms.NmsItemStack
-import phonon.xc.nms.CraftItemStack
-import phonon.xc.nms.CraftPlayer
-import phonon.xc.nms.CraftMagicNumbers
-import phonon.xc.nms.getMainHandNMSItem
 import phonon.xc.XC
-import phonon.xc.ammo.Ammo
 import phonon.xc.armor.Hat
 import phonon.xc.gun.Gun
-import phonon.xc.landmine.Landmine
 import phonon.xc.melee.MeleeWeapon
+import phonon.xc.nms.*
+import phonon.xc.nms.CraftPlayer
+import phonon.xc.nms.getMainHandNMSItem
 import phonon.xc.throwable.ThrowableItem
 
 /**
@@ -81,7 +64,7 @@ public fun XC.getItemTypeInHand(player: Player): Int {
  * Returns -1 if item in hand is not of the correct material type or
  * if there is no custom model data.
  */
-public fun XC.getCustomItemIdInHand(player: Player, itemType: Int): Int {
+fun XC.getCustomItemIdInHand(player: Player, itemType: Int): Int {
     val craftPlayer = player as CraftPlayer
     val nmsItem = craftPlayer.getMainHandNMSItem()
 
@@ -89,13 +72,13 @@ public fun XC.getCustomItemIdInHand(player: Player, itemType: Int): Int {
     // println("getItemTypeInHand -> itemInHand: $nmsItem")
     
     // internally uses IntArray lookup table using material enum ordinal
-    val material = CraftMagicNumbers.getMaterial(nmsItem.getItem())
+    val material = CraftMagicNumbers.getMaterial(nmsItem.item)
     val itemTypeInHand = this.config.materialToCustomItemType[material]
     if ( itemTypeInHand != itemType ) {
         return -1
     }
 
-    val tags: NmsNBTTagCompound? = nmsItem.getTag()
+    val tags: NmsNBTTagCompound? = nmsItem.tags
     // println("tags = $tags")
     // NOTE: must check first before getting tag
     if ( tags != null && tags.containsKeyOfType("CustomModelData", NBT_TAG_INT) ) {
@@ -641,7 +624,7 @@ public fun XC.getHatFromNmsItemStack(nmsItem: NmsItemStack): Hat? {
  * Return hat if player holding a hat in main hand.
  * This uses raw NMS to check item tags.
  */
-public fun XC.getHatInHand(player: Player): Hat? {
+fun XC.getHatInHand(player: Player): Hat? {
     val craftPlayer = player as CraftPlayer
     val nmsItem = craftPlayer.getMainHandNMSItem()
     
@@ -658,15 +641,6 @@ public fun XC.getHatInHand(player: Player): Hat? {
  * Return hat from player's main hand item, without
  * checking if the material is correct.
  */
-public fun XC.getHatInHandUnchecked(player: Player): Hat? {
-    val craftPlayer = player as CraftPlayer
-    val nmsItem = craftPlayer.getMainHandNMSItem()
-    
-    // println("itemInHand: $nmsItem")
-
-    if ( nmsItem != null ) {
-        return getCustomItemUnchecked(nmsItem, this.storage.hat)
-    }
-
-    return null
+fun XC.getHatInHandUnchecked(player: Player): Hat? {
+    return getCustomItemUnchecked(nmsItem, this.storage.hat)
 }

@@ -11,7 +11,6 @@
 
 package phonon.xc.gun
 
-import java.util.concurrent.ThreadLocalRandom
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -20,14 +19,14 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
-import org.bukkit.entity.Damageable
 import phonon.xc.XC
-import phonon.xc.util.damage.*
+import phonon.xc.event.XCProjectileDamageEvent
 import phonon.xc.util.ChunkCoord3D
 import phonon.xc.util.Hitbox
+import phonon.xc.util.damage.damageAfterArmorAndResistance
 import phonon.xc.util.death.XcPlayerDeathEvent
 import phonon.xc.util.explosion.createExplosion
-import phonon.xc.event.XCProjectileDamageEvent
+import java.util.concurrent.ThreadLocalRandom
 
 
 /**
@@ -61,7 +60,7 @@ typealias GunHitEntityHandler = (XC, Map<ChunkCoord3D, List<Hitbox>>, Gun, Locat
 /**
  * Map string name to built-in hit block handlers.
  */
-public fun getGunHitBlockHandler(name: String): GunHitBlockHandler? {
+fun getGunHitBlockHandler(name: String): GunHitBlockHandler? {
     return when ( name.lowercase() ) {
         "explosion" -> blockExplosionHitHandler
         "fire" -> blockFireHitHandler
@@ -72,7 +71,7 @@ public fun getGunHitBlockHandler(name: String): GunHitBlockHandler? {
 /**
  * Map string name to built-in hit block handlers.
  */
-public fun getGunHitEntityHandler(name: String): GunHitEntityHandler? {
+fun getGunHitEntityHandler(name: String): GunHitEntityHandler? {
     return when ( name.lowercase() ) {
         "damage" -> entityDamageHitHandler
         "explosion" -> entityExplosionHitHandler
@@ -84,12 +83,12 @@ public fun getGunHitEntityHandler(name: String): GunHitEntityHandler? {
 /**
  * Empty entity hit handler.
  */
-public val noEntityHitHandler: GunHitEntityHandler = {_, _, _, _, _, _, _ -> }
+val noEntityHitHandler: GunHitEntityHandler = {_, _, _, _, _, _, _ -> }
 
 /**
  * Entity hit handler with damage (standard entity damage hit handler).
  */
-public val entityDamageHitHandler = fun(
+val entityDamageHitHandler = fun(
     xc: XC,
     hitboxes: Map<ChunkCoord3D, List<Hitbox>>,
     gun: Gun,
@@ -170,7 +169,7 @@ public val entityDamageHitHandler = fun(
 /**
  * Entity hit handler with damage and a queued explosion at hit location.
  */
-public val entityExplosionHitHandler = fun(
+val entityExplosionHitHandler = fun(
     xc: XC,
     hitboxes: Map<ChunkCoord3D, List<Hitbox>>,
     gun: Gun,
@@ -221,12 +220,12 @@ public val entityExplosionHitHandler = fun(
 /**
  * Empty block hit handler.
  */
-public val noBlockHitHandler: GunHitBlockHandler = {_, _, _, _, _, _ -> }
+val noBlockHitHandler: GunHitBlockHandler = {_, _, _, _, _, _ -> }
 
 /**
  * Block hit handler that queues explosion at hit location.
  */
-public val blockExplosionHitHandler = fun(
+val blockExplosionHitHandler = fun(
     xc: XC,
     hitboxes: Map<ChunkCoord3D, List<Hitbox>>,
     gun: Gun,
@@ -264,7 +263,7 @@ public val blockExplosionHitHandler = fun(
 /**
  * Block hit handler that creates fire on top of hit location.
  */
-public val blockFireHitHandler = fun(
+val blockFireHitHandler = fun(
     xc: XC,
     _hitboxes: Map<ChunkCoord3D, List<Hitbox>>,
     gun: Gun,
@@ -281,15 +280,15 @@ public val blockFireHitHandler = fun(
 
         // set block below on fire
         if ( blType == Material.AIR ) {
-            val blBelow = block.getRelative(0, -1, 0);
+            val blBelow = block.getRelative(0, -1, 0)
             if ( blBelow.getType().isSolid() ) {
-                block.setType(Material.FIRE);
+                block.setType(Material.FIRE)
             }
         }
         else if ( blType.isSolid() ) {
-            val blAbove = block.getRelative(0, 1, 0);
+            val blAbove = block.getRelative(0, 1, 0)
             if ( blAbove.getType() == Material.AIR ) {
-                blAbove.setType(Material.FIRE);
+                blAbove.setType(Material.FIRE)
             }
         }
     }

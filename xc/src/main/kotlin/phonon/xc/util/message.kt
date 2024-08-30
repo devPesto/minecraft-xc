@@ -60,7 +60,7 @@ public object Message {
     /**
      * Wrapper around paper sendActionBar to send plugin formatted messages.
      */
-    public fun announcement(player: Player, s: String) {
-        player.sendActionBar(Component.text(s))
+    fun announcement(player: Player, s: String) {
+        player.sendActionBar(s.parseMiniMessage())
     }
 }

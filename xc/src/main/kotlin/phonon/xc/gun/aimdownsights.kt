@@ -4,57 +4,44 @@
 
 package phonon.xc.gun
 
+import net.minecraft.world.InteractionHand
 import org.bukkit.Material
+import org.bukkit.craftbukkit.entity.CraftPlayer
+import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
-
-import phonon.xc.nms.NmsPacketPlayOutSetSlot
-import phonon.xc.nms.NmsItemStack
-import phonon.xc.nms.CraftItemStack
-import phonon.xc.nms.CraftPlayer
-import phonon.xc.nms.sendItemSlotChange
-
-import phonon.xc.XC
-import phonon.xc.gun.Gun
-import phonon.xc.gun.AimDownSightsModel
-
+import kotlin.math.max
 
 // return item slot to no item
-private val NMS_ITEM_NONE = CraftItemStack.asNMSCopy(ItemStack(Material.AIR, 1))
+private val NMS_ITEM_NONE = CraftItemStack.asNMSCopy(ItemStack(Material.AIR))
 
 // inventory container id
 private const val PLAYER_CONTAINER_ID = 0
 
 // item slot for aim down sights model
-private const val SLOT_OFFHAND = 45
+private val SLOT_OFFHAND = InteractionHand.OFF_HAND
 
 
-public class AimDownSightsModelPacketManager(
+class AimDownSightsModelPacketManager(
     gun: Gun,
     materialAimDownSights: Material,
-): AimDownSightsModel {
-    private val nmsItemAdsModel: NmsItemStack
-    
+) : AimDownSightsModel {
+    private val nmsItemAdsModel: net.minecraft.world.item.ItemStack
+
     init {
-        val modelId = if ( gun.itemModelAimDownSights > 0 ) {
-            gun.itemModelAimDownSights
-        } else {
-            gun.itemModelDefault
-        }
+        val modelId = max(gun.itemModelAimDownSights, gun.itemModelDefault)
 
         // create nms item stack for ads model
-        val item = ItemStack(materialAimDownSights, 1)
-        val itemMeta = item.getItemMeta()
-        itemMeta.setCustomModelData(modelId)
-        item.setItemMeta(itemMeta)
+        val item = ItemStack(materialAimDownSights).apply {
+            editMeta { it.setCustomModelData(modelId) }
+        }
         nmsItemAdsModel = CraftItemStack.asNMSCopy(item)
     }
 
 
     override fun create(player: Player) {
-        val nmsPlayer = (player as CraftPlayer).getHandle()
-        nmsPlayer.sendItemSlotChange(SLOT_OFFHAND, nmsItemAdsModel)
+        val nmsPlayer = (player as CraftPlayer).handle
+        nmsPlayer.setItemInHand(SLOT_OFFHAND, nmsItemAdsModel)
     }
 
 
@@ -63,8 +50,8 @@ public class AimDownSightsModelPacketManager(
          * Remove aim down sights model from a player.
          */
         fun destroy(player: Player) {
-            val nmsPlayer = (player as CraftPlayer).getHandle()
-            nmsPlayer.sendItemSlotChange(SLOT_OFFHAND, NMS_ITEM_NONE)
+            val nmsPlayer = (player as CraftPlayer).handle
+            nmsPlayer.setItemInHand(SLOT_OFFHAND, NMS_ITEM_NONE)
         }
     }
 }

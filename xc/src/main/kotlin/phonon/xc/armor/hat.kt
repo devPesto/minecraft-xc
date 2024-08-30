@@ -4,71 +4,60 @@
 
 package phonon.xc.armor
 
-import java.nio.file.Path
-import java.util.UUID
-import java.util.logging.Logger
-import kotlin.math.max
-import org.tomlj.Toml
 import org.bukkit.ChatColor
 import org.bukkit.NamespacedKey
 import org.bukkit.Sound
+import org.bukkit.attribute.Attribute
+import org.bukkit.attribute.AttributeModifier
+import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
-import org.bukkit.attribute.Attribute
-import org.bukkit.attribute.AttributeModifier
-import org.bukkit.enchantments.Enchantment
+import org.tomlj.Toml
 import phonon.xc.XC
 import phonon.xc.item.getHatInHand
-import phonon.xc.util.mapToObject
 import phonon.xc.util.IntoItemStack
+import phonon.xc.util.mapToObject
+import phonon.xc.util.parse
+import java.nio.file.Path
+import java.util.*
+import java.util.logging.Logger
 
 
-public data class Hat(
-    public val id: Int = Int.MAX_VALUE, // invalid
-    public val armor: Double = 4.0,
-    public val enchants: HashMap<Enchantment, Int> = HashMap(),
+data class Hat(
+    val id: Int = Int.MAX_VALUE, // invalid
+    val armor: Double = 4.0,
+    val enchants: Map<Enchantment, Int> = HashMap(),
 
     // item properties
-    public val itemName: String = "helmet",
-    public val itemModel: Int = 0,
-    public val itemLore: List<String> = listOf(),
-): IntoItemStack {
+    val itemName: String = "helmet",
+    val itemModel: Int = 0,
+    val itemLore: List<String> = listOf(),
+) : IntoItemStack {
     /**
      * Create a new ItemStack from helmet properties.
      */
-    public override fun toItemStack(xc: XC): ItemStack {
+    override fun toItemStack(xc: XC): ItemStack {
         val item = ItemStack(xc.config.materialArmor, 1)
-        val itemMeta = item.getItemMeta()
-        
-        // name
-        itemMeta.setDisplayName("${ChatColor.RESET}${this.itemName}")
-        
-        // model
-        itemMeta.setCustomModelData(this.itemModel)
-
-        // lore
-        itemMeta.setLore(this.itemLore)
-
-        // set armor
         val modifier = AttributeModifier(
             UUID.randomUUID(),
             "armor_helmet",
-            this.armor,
+            armor,
             AttributeModifier.Operation.ADD_NUMBER,
             EquipmentSlot.HEAD,
         )
-        itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier)
-        
-        itemMeta.removeItemFlags(ItemFlag.HIDE_ATTRIBUTES)
 
-        // apply enchantments
-        for ( (enchant, level) in this.enchants ) {
-            itemMeta.addEnchant(enchant, level, true) // ignores enchant level restricts
+        item.editMeta {
+            it.displayName(itemName.parse())
+            it.setCustomModelData(itemModel)
+            it.lore(itemLore.map { line -> line.parse() })
+            it.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier)
+            it.removeItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         }
 
-        item.setItemMeta(itemMeta)
+        item.removeItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+        item.addUnsafeEnchantments(enchants)
 
         return item
     }
@@ -80,18 +69,18 @@ public data class Hat(
          * This returns a list of hats since format allows each file to
          * specify multiple hats in an array of tables. This is because
          * most hats config is small and are nearly identical.
-         * 
+         *
          * Return null list if any hat fails to parse.if something fails
          * or no file found.
          */
-        public fun listFromToml(source: Path, logger: Logger? = null): List<Hat>? {
+        fun listFromToml(source: Path, logger: Logger? = null): List<Hat>? {
             val hats = ArrayList<Hat>()
 
             try {
                 val toml = Toml.parse(source)
 
                 toml.getArray("hat")?.let { tomlHatArray ->
-                    for ( i in 0 until tomlHatArray.size() ) {
+                    for (i in 0 until tomlHatArray.size()) {
                         val tomlHat = tomlHatArray.getTable(i)
 
                         // map with keys as constructor property names
@@ -99,19 +88,20 @@ public data class Hat(
 
                         // parse basic item properties
                         tomlHat.getLong("id")?.let { properties["id"] = it.toInt() }
-                        tomlHat.getString("name")?.let { properties["itemName"] = ChatColor.translateAlternateColorCodes('&', it) }
+                        tomlHat.getString("name")
+                            ?.let { properties["itemName"] = ChatColor.translateAlternateColorCodes('&', it) }
                         tomlHat.getLong("model")?.let { properties["itemModel"] = it.toInt() }
                         tomlHat.getArray("lore")?.let { properties["itemLore"] = it.toList().map { s -> s.toString() } }
                         tomlHat.getDouble("armor")?.let { properties["armor"] = it }
-                        
+
                         // parse enchantments
                         tomlHat.getTable("enchants")?.let { enchantTable ->
                             val enchants = HashMap<Enchantment, Int>()
-                            for ( key in enchantTable.keySet() ) {
+                            for (key in enchantTable.keySet()) {
                                 val en = Enchantment.getByKey(NamespacedKey.minecraft(key));
-                                if ( en != null ) {
+                                if (en != null) {
                                     val level = enchantTable.getLong(key)?.toInt()
-                                    if ( level != null ) {
+                                    if (level != null) {
                                         enchants[en] = level
                                     } else {
                                         logger?.warning("Failed to parse enchantment level for ${key}")
@@ -157,12 +147,12 @@ internal fun XC.wearHatSystem(
 ) {
     val playerHandled = HashSet<UUID>(wearHatRequests.size) // players ids already handled to avoid redundant requests
 
-    for ( request in wearHatRequests ) {
+    for (request in wearHatRequests) {
         try {
             val player = request.player
             val playerId = player.getUniqueId()
-            
-            if ( playerHandled.add(playerId) == false ) {
+
+            if (!playerHandled.add(playerId)) {
                 // false if already contained in set
                 continue
             }
@@ -171,18 +161,18 @@ internal fun XC.wearHatSystem(
             // since events could override the first request, causing
             // inventory slot or item to change
             val hat = getHatInHand(player)
-            if ( hat == null ) {
+            if (hat == null) {
                 continue
             }
 
-            val playerInventory = player.getInventory()
-            val newHelmet = playerInventory.getItemInMainHand()
-            val currHelmet = playerInventory.getHelmet()
+            val playerInventory = player.inventory
+            val newHelmet = playerInventory.itemInMainHand
+            val currHelmet = playerInventory.helmet
             playerInventory.setItemInMainHand(currHelmet)
-            playerInventory.setHelmet(newHelmet)
+            playerInventory.helmet = newHelmet
 
             // equip sound
-            player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_IRON, 1f, 1f)
+            player.playSound(player.location, Sound.ITEM_ARMOR_EQUIP_IRON, 1f, 1f)
         } catch (e: Exception) {
             e.printStackTrace()
             this.logger.severe("Failed to handle player wear hat request: ${e}")

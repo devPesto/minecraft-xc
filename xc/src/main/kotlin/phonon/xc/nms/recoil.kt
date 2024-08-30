@@ -1,17 +1,17 @@
 /**
- * NMS 1.16.5 compatibility for recoil packets.
- * https://nms.screamingsandals.org/1.16.5/
+ * NMS 1.18.2 compatibility for recoil packets.
+ * https://nms.screamingsandals.org/1.18.2/
  * 
- * NOTE: for 1.16.5, use the "Spigot" names for classes and methods.
+ * NOTE: for 1.18.2, use the "Mojang" names for classes and methods.
  */
 
 package phonon.xc.nms.recoil
 
-import net.minecraft.server.v1_16_R3.ArgumentAnchor
-import net.minecraft.server.v1_16_R3.PacketPlayOutLookAt
-import net.minecraft.server.v1_16_R3.PacketPlayOutPosition
-import net.minecraft.server.v1_16_R3.PacketPlayOutPosition.EnumPlayerTeleportFlags
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer
+import net.minecraft.network.protocol.game.ClientboundPlayerLookAtPacket
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket.RelativeArgument
+import net.minecraft.commands.arguments.EntityAnchorArgument
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer
 import org.bukkit.entity.Player
 
 /**
@@ -20,11 +20,11 @@ import org.bukkit.entity.Player
  * This makes player position packet a relative position instead of absolute.
  */
 private val RELATIVE_TELEPORT_FLAGS = setOf(
-    EnumPlayerTeleportFlags.X,
-    EnumPlayerTeleportFlags.Y,
-    EnumPlayerTeleportFlags.Z,
-    EnumPlayerTeleportFlags.Y_ROT,
-    EnumPlayerTeleportFlags.X_ROT,
+    RelativeArgument.X,
+    RelativeArgument.Y,
+    RelativeArgument.Z,
+    RelativeArgument.Y_ROT,
+    RelativeArgument.X_ROT,
 )
 
 /**
@@ -33,7 +33,7 @@ private val RELATIVE_TELEPORT_FLAGS = setOf(
  * (Default method, gives smooth recoil).
  * HOWEVER, THIS DOES NOT WORK IN VEHICLES!!!
  * 
- * https://nms.screamingsandals.org/1.16.5/net/minecraft/network/protocol/game/ClientboundPlayerPositionPacket.html
+ * https://nms.screamingsandals.org/1.18.2/net/minecraft/network/protocol/game/ClientboundPlayerPositionPacket.html
  * https://wiki.vg/Protocol#Player_Position
  * Position packet: 0x36, Play, Server -> Client
  *      X                    Double    Absolute or relative position, depending on Flags.
@@ -57,7 +57,7 @@ public fun Player.sendRecoilPacketUsingRelativeTeleport(
     recoilHorizontal: Float,
     recoilVertical: Float,
 ) {
-    val packet = PacketPlayOutPosition(
+    val packet = ClientboundPlayerPositionPacket(
         // relative positions = 0,0,0
         0.0,
         0.0,
@@ -69,9 +69,11 @@ public fun Player.sendRecoilPacketUsingRelativeTeleport(
         RELATIVE_TELEPORT_FLAGS,
         // teleport id, is this needed??
         0,
+        // dismount vehicle = false
+        false,
     )
 
-    (this as CraftPlayer).handle.playerConnection.sendPacket(packet)
+    (this as CraftPlayer).handle.connection.send(packet)
 }
 
 /**
@@ -80,7 +82,7 @@ public fun Player.sendRecoilPacketUsingRelativeTeleport(
  * motion in client. This is used when player is in vehicle or riding
  * an entity.
  * 
- * https://nms.screamingsandals.org/1.16.5/net/minecraft/network/protocol/game/ClientboundPlayerLookAtPacket.html
+ * https://nms.screamingsandals.org/1.18.2/net/minecraft/network/protocol/game/ClientboundPlayerLookAtPacket.html
  * https://wiki.vg/Protocol#Look_At
  * 0x38, Play, Client
  *     FIELD NAME         FIELD TYPE              NOTES
@@ -97,12 +99,12 @@ public fun Player.sendRecoilPacketUsingLookAt(
     dirY: Double,
     dirZ: Double,
 ) {
-    val packet = PacketPlayOutLookAt(
-        ArgumentAnchor.Anchor.EYES,
+    val packet = ClientboundPlayerLookAtPacket(
+        EntityAnchorArgument.Anchor.EYES,
         dirX,
         dirY,
         dirZ,
     )
 
-    (this as CraftPlayer).handle.playerConnection.sendPacket(packet)
+    (this as CraftPlayer).handle.connection.send(packet)
 }

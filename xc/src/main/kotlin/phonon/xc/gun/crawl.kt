@@ -38,9 +38,9 @@ import phonon.xc.gun.AmmoInfoMessagePacket
 import phonon.xc.gun.item.setGunItemMetaModel
 import phonon.xc.item.getGunInHand
 import phonon.xc.item.getGunFromItem
+import phonon.xc.nms.gun.BoxEntity
 import phonon.xc.util.progressBar10
 // nms version specific imports
-import phonon.xc.nms.gun.crawl.BoxEntity
 
 
 /**
@@ -198,14 +198,14 @@ public data class Crawling(
  * Initializes a crawl state for a player 
  */
 public fun XC.forceCrawl(player: Player): Crawling {
-    val playerLocation = player.getLocation()
-    val blAboveX = playerLocation.getBlockX()
-    val blAboveY = playerLocation.getBlockY() + 1
-    val blAboveZ = playerLocation.getBlockZ()
+    val playerLocation = player.location
+    val blAboveX = playerLocation.blockX
+    val blAboveY = playerLocation.blockY + 1
+    val blAboveZ = playerLocation.blockZ
+
+    val yHeightInBlock = playerLocation.y - floor(playerLocation.y)
     
-    val yHeightInBlock = playerLocation.getY() - floor(playerLocation.getY())
-    
-    val blAboveMaterial = player.getWorld().getBlockAt(blAboveX, blAboveY, blAboveZ).getType()
+    val blAboveMaterial = player.world.getBlockAt(blAboveX, blAboveY, blAboveZ).getType()
 
     // only use barrier block if player < 0.5 height in block and block above is air
     val useBarrierBlock = yHeightInBlock < 0.5 && blAboveMaterial == Material.AIR
@@ -252,14 +252,14 @@ public value class CrawlStart(
  * Request to stop crawling.
  */
 @JvmInline
-public value class CrawlStop(
+value class CrawlStop(
     val player: Player,
 )
 
 // Slowness effect while crawling. Max potion amplifier should be 255 i think... (ambient = true, particles = false)
-private val SLOWNESS_EFFECT: PotionEffect = PotionEffect(PotionEffectType.SLOW, Int.MAX_VALUE, 255, true, false)
+private val SLOWNESS_EFFECT: PotionEffect = PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 255, true, false)
 // No jump effect: when jump negative, prevents player from jumping (ambient = true, particles = false)
-private val NO_JUMP_EFFECT: PotionEffect = PotionEffect(PotionEffectType.JUMP, Int.MAX_VALUE, -128, true, false)
+private val NO_JUMP_EFFECT: PotionEffect = PotionEffect(PotionEffectType.JUMP_BOOST, PotionEffect.INFINITE_DURATION, -128, true, false)
 
 /**
  * Process start crawl requests for players. Returns new queue for next tick.
@@ -331,7 +331,7 @@ internal fun XC.stopCrawlSystem(
             val playerId = player.getUniqueId()
 
             // player.removePotionEffect(PotionEffectType.SLOW)
-            player.removePotionEffect(PotionEffectType.JUMP)
+            player.removePotionEffect(PotionEffectType.JUMP_BOOST)
             player.setWalkSpeed(0.2f) // default speed
 
             crawling.remove(playerId)?.cleanup()

@@ -7,7 +7,6 @@ package phonon.xc.event
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.Entity
-import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
@@ -21,35 +20,35 @@ import phonon.xc.util.damage.DamageType
  * and takes damage. This only occurs for entities that have
  * hitboxes enabled.
  */
-public data class XCProjectileDamageEvent(
-    public val gun: Gun,
-    public val location: Location,
-    public val target: Entity,
-    public val source: Entity,
-    public val damage: Double,
-    public val distance: Double,
-): Event(), Cancellable {
+data class XCProjectileDamageEvent(
+    val gun: Gun,
+    val location: Location,
+    val target: Entity,
+    val source: Entity,
+    val damage: Double,
+    val distance: Double,
+) : Event(), Cancellable {
     // event cancelled
     private var cancelled: Boolean = false
 
-    override public fun isCancelled(): Boolean {
+    override fun isCancelled(): Boolean {
         return this.cancelled
     }
 
-    override public fun setCancelled(cancel: Boolean) {
+    override fun setCancelled(cancel: Boolean) {
         this.cancelled = cancel
     }
 
-    override public fun getHandlers(): HandlerList {
+    override fun getHandlers(): HandlerList {
         return XCProjectileDamageEvent.handlers
     }
 
-    
+
     companion object {
         private val handlers: HandlerList = HandlerList()
 
         @JvmStatic
-        public fun getHandlerList(): HandlerList {
+        fun getHandlerList(): HandlerList {
             return handlers
         }
     }
@@ -61,33 +60,33 @@ public data class XCProjectileDamageEvent(
  * and takes damage. This only occurs for entities that have
  * hitboxes enabled.
  */
-public data class XCThrowableDamageEvent(
-    public val throwable: ThrowableItem,
-    public val location: Location,
-    public val target: Entity,
-    public val source: Entity,
-): Event(), Cancellable {
+data class XCThrowableDamageEvent(
+    val throwable: ThrowableItem,
+    val location: Location,
+    val target: Entity,
+    val source: Entity,
+) : Event(), Cancellable {
     // event cancelled
     private var cancelled: Boolean = false
 
-    override public fun isCancelled(): Boolean {
+    override fun isCancelled(): Boolean {
         return this.cancelled
     }
 
-    override public fun setCancelled(cancel: Boolean) {
+    override fun setCancelled(cancel: Boolean) {
         this.cancelled = cancel
     }
 
-    override public fun getHandlers(): HandlerList {
+    override fun getHandlers(): HandlerList {
         return XCThrowableDamageEvent.handlers
     }
 
-    
+
     companion object {
         private val handlers: HandlerList = HandlerList()
 
         @JvmStatic
-        public fun getHandlerList(): HandlerList {
+        fun getHandlerList(): HandlerList {
             return handlers
         }
     }
@@ -99,37 +98,37 @@ public data class XCThrowableDamageEvent(
  * (so entity within explosion distance). This only occurs for
  * entities that have hitboxes enabled.
  */
-public data class XCExplosionDamageEvent(
-    public val target: Entity,
-    public val damage: Double, // base damage, not modified by armor
-    public val damageType: DamageType,
-    public val distance: Double, // distance from explosion center
-    public val source: Entity?,
-    public val weaponType: Int,
-    public val weaponId: Int,
-    public val weaponMaterial: Material,
-): Event(), Cancellable {
+data class XCExplosionDamageEvent(
+    val target: Entity,
+    val damage: Double, // base damage, not modified by armor
+    val damageType: DamageType,
+    val distance: Double, // distance from explosion center
+    val source: Entity?,
+    val weaponType: Int,
+    val weaponId: Int,
+    val weaponMaterial: Material,
+) : Event(), Cancellable {
     // event cancelled
     private var cancelled: Boolean = false
 
-    override public fun isCancelled(): Boolean {
+    override fun isCancelled(): Boolean {
         return this.cancelled
     }
 
-    override public fun setCancelled(cancel: Boolean) {
+    override fun setCancelled(cancel: Boolean) {
         this.cancelled = cancel
     }
 
-    override public fun getHandlers(): HandlerList {
+    override fun getHandlers(): HandlerList {
         return XCExplosionDamageEvent.handlers
     }
 
-    
+
     companion object {
         private val handlers: HandlerList = HandlerList()
-        
+
         @JvmStatic
-        public fun getHandlerList(): HandlerList {
+        fun getHandlerList(): HandlerList {
             return handlers
         }
     }

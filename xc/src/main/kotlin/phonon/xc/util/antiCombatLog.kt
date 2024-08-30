@@ -28,20 +28,16 @@
  * we can assume this always holds true. 
  */
 
-package phonon.xc.util.anticombatlog
+package phonon.xc.util
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.math.max
-import kotlin.math.min
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.scheduler.BukkitRunnable
 import net.kyori.adventure.text.Component
 import phonon.xc.XC
-import phonon.xc.util.Message
 
 /**
  * Timestamp created when a player enters combat. `timeCombatEnds` is

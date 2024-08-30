@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadLocalRandom
 import java.util.EnumMap
-import java.util.EnumSet
 import java.util.UUID
 import java.util.logging.Logger
 import kotlin.math.max
@@ -29,16 +28,11 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.Particle
-import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
-import org.bukkit.entity.Damageable
 import org.bukkit.plugin.Plugin
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitTask
-import org.bukkit.scheduler.BukkitRunnable
-import org.bukkit.util.Vector
 
 // i hate java
 import phonon.xc.ammo.*
@@ -49,10 +43,8 @@ import phonon.xc.gun.TaskCalculatePlayerSpeed
 import phonon.xc.landmine.*
 import phonon.xc.melee.*
 import phonon.xc.throwable.*
-import phonon.xc.util.anticombatlog.TaskAntiCombatLog
-import phonon.xc.util.anticombatlog.killCombatLoggerSystem
-import phonon.xc.util.EnumArrayMap
-import phonon.xc.util.mapToObject
+import phonon.xc.util.TaskAntiCombatLog
+import phonon.xc.util.killCombatLoggerSystem
 import phonon.xc.util.Hitbox
 import phonon.xc.util.HitboxSize
 import phonon.xc.util.particle.*
@@ -65,19 +57,18 @@ import phonon.xc.util.WorldGuard
 import phonon.xc.util.death.*
 
 // TODO: in future need to select NMS version
-import phonon.xc.nms.gun.crawl.*
 
 // ========================================================================
 // BUILT-IN ENGINE CONSTANTS TODO MAKE THESE CONFIG
 // ========================================================================
-public const val INVALID_ITEM_ID: Int = Int.MAX_VALUE       // sentinel value for invalid IDs
+const val INVALID_ITEM_ID: Int = Int.MAX_VALUE       // sentinel value for invalid IDs
 
 /**
  * Container for all XC custom object storage.
  * Include helper functions to get custom items from Bukkit Item stacks
  * or player inventory.
  */
-public class CustomItemStorage(
+class CustomItemStorage(
     // ammo lookup
     public val ammo: Array<Ammo?>,
     public val ammoIds: IntArray,
@@ -137,18 +128,18 @@ public class XC(
     // CONSTANTS
     companion object {
         // item types (using int const instead of enum)
-        public const val ITEM_TYPE_INVALID: Int = -1
-        public const val ITEM_TYPE_AMMO: Int = 0
-        public const val ITEM_TYPE_GUN: Int = 1
-        public const val ITEM_TYPE_MELEE: Int = 2
-        public const val ITEM_TYPE_THROWABLE: Int = 3
-        public const val ITEM_TYPE_HAT: Int = 4
-        public const val ITEM_TYPE_LANDMINE: Int = 5
+        const val ITEM_TYPE_INVALID: Int = -1
+        const val ITEM_TYPE_AMMO: Int = 0
+        const val ITEM_TYPE_GUN: Int = 1
+        const val ITEM_TYPE_MELEE: Int = 2
+        const val ITEM_TYPE_THROWABLE: Int = 3
+        const val ITEM_TYPE_HAT: Int = 4
+        const val ITEM_TYPE_LANDMINE: Int = 5
         
         // constant int for indicating player combat logged, instead of
         // an int. used for player death events...yes this is dirty and
         // not "type safe"
-        public const val COMBAT_LOGGED: Int = 1000
+        const val COMBAT_LOGGED: Int = 1000
     }
     
     // namespaced keys for custom item stack properties

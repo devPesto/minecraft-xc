@@ -1,7 +1,8 @@
 main: phonon.xc.XCPlugin
 name: xc
 version: 0.0.4
-api-version: 1.16
+api-version: 1.20
+depend: [ProtocolLib]
 softdepend: [kotlin, WorldGuard]
 commands:
   xc:

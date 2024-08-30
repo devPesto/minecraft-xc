@@ -5,27 +5,26 @@
 package phonon.xc
 
 import org.bukkit.command.TabCompleter
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.event.HandlerList
-import phonon.xc.commands.*
-import phonon.xc.listeners.*
-import java.io.File
+import org.bukkit.plugin.java.JavaPlugin
+import phonon.xc.commands.AimDownSightsCommand
+import phonon.xc.commands.Command
+import phonon.xc.listeners.EventListener
 
-public class XCPlugin: JavaPlugin() {
-    
+class XCPlugin : JavaPlugin() {
+
     // plugin internal state
     val xc: XC = XC(
         this,
-        this.getLogger(),
+        this.logger
     )
-    
-    override fun onEnable() {
-        
-        // measure load time
-        val timeStart = System.currentTimeMillis()
 
-        val logger = this.getLogger()
-        val pluginManager = this.getServer().getPluginManager()
+    override fun onEnable() {
+
+        // measure load time
+        val timeStart = System.nanoTime()
+
+        val pluginManager = this.server.pluginManager
 
         // ===================================
         // Initialize main plugin:
@@ -35,11 +34,8 @@ public class XCPlugin: JavaPlugin() {
 
         // world guard hook
         val pluginWorldGuard = pluginManager.getPlugin("WorldGuard")
-        val usingWorldGuard = if ( pluginManager.isPluginEnabled("WorldGuard") && pluginWorldGuard != null ) {
-            logger.info("Using WorldGuard v${pluginWorldGuard.getDescription().getVersion()}")
-            true
-        } else {
-            false
+        val usingWorldGuard = (pluginManager.isPluginEnabled("WorldGuard") && pluginWorldGuard != null).also {
+            logger.info("Using WorldGuard v${pluginWorldGuard?.pluginMeta.version}")
         }
 
         xc.usingWorldGuard(usingWorldGuard)
@@ -54,19 +50,19 @@ public class XCPlugin: JavaPlugin() {
         // register commands
         this.getCommand("xc")?.setExecutor(Command(xc))
         this.getCommand("aimdownsights")?.setExecutor(AimDownSightsCommand(xc))
-        
+
         // override command aliases tab complete if they exist
-        this.getCommand("xc")?.setTabCompleter(this.getCommand("xc")?.getExecutor() as TabCompleter)
-        this.getCommand("ads")?.setTabCompleter(this.getCommand("aimdownsights")?.getExecutor() as TabCompleter)
+        this.getCommand("xc")?.tabCompleter = this.getCommand("xc")?.executor as TabCompleter
+        this.getCommand("ads")?.tabCompleter = this.getCommand("aimdownsights")?.executor as TabCompleter
 
         // load plugin and start engine
         xc.reload()
         xc.start()
 
         // print load time
-        val timeEnd = System.currentTimeMillis()
+        val timeEnd = System.nanoTime()
         val timeLoad = timeEnd - timeStart
-        logger.info("Enabled in ${timeLoad}ms")
+        logger.info("Enabled in ${timeLoad/1e6}ms")
 
         // print success message
         logger.info("now this is epic")
